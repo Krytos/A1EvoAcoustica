@@ -32,6 +32,12 @@ jobs:
       - name: Build Linux executable
         run: npm run build-linux
 
+      - name: Build MacOS x64 executable
+        run: npm run build-macos-x64
+
+      - name: Build MacOS arm64 executable
+        run: npm run build-macos-arm64
+
       - name: Build Windows executable
         run: npm run build-windows
 
