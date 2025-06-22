@@ -424,7 +424,7 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
+          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
           COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
 
           if [ -n "$COMMIT_HASH" ]; then
@@ -476,7 +476,7 @@ jobs:
       - name: Success summary
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
+          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
 
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             echo "🧪 Dry run completed successfully!"
