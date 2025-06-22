@@ -424,10 +424,9 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
-          COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
+          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
 
-          if [ -n "$COMMIT_HASH" ]; then
+          if [ -n "${{ github.event.inputs.commit_hash }}" ]; then
             # For specific commits, just create tag without committing changes
             git tag -a "v$NEW_VERSION" "$TARGET_COMMIT" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
           else
@@ -461,20 +460,20 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ needs.validate-inputs.outputs.normalized_version }}
-          name: A1 Evo Acoustica v${{ needs.validate_inputs.outputs.normalized_version }}
+          name: A1 Evo Acoustica v${{ needs.validate-inputs.outputs.normalized_version }}
           body_path: release_notes.md
           files: |
             dist/*
           prerelease: ${{ github.event.inputs.prerelease }}
           draft: false
-          target_commitish: ${{ needs.validate_inputs.outputs.target_commit }}
+          target_commitish: ${{ needs.validate-inputs.outputs.target_commit }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Success summary
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
+          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
 
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             echo "🧪 Dry run completed successfully!"
