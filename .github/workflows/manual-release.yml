@@ -425,12 +425,14 @@ jobs:
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
           TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
+          COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
 
-          if [ -n "${{ github.event.inputs.commit_hash }}" ]; then
-            # For specific commits, just create tag without committing changes
-            git tag -a "v$NEW_VERSION" "$TARGET_COMMIT" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
+          if [ -n "$COMMIT_HASH" ]; then
+            # For specific commits, create a simpler tag without complex referencing
+            echo "🏷️ Creating tag for specific commit $TARGET_COMMIT"
+            git tag -a "v$NEW_VERSION" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
           else
-            # For latest commit, commit version changes first
+            # For latest commit, follow the same pattern as release.yml
             git add package.json package-lock.json
             [ -f "main.js" ] && git add main.js
             [ -f "A1Evo.html" ] && git add A1Evo.html
@@ -439,19 +441,15 @@ jobs:
             # Commit if there are changes
             if ! git diff --staged --quiet; then
               git commit -m "🎯 Manual release v$NEW_VERSION - Release type: ${{ github.event.inputs.release_type }} - Triggered by: ${{ github.actor }} - Build platforms: ${{ github.event.inputs.build_platforms }} [skip-release]"
-
-              # Only push if we're on main branch, not detached HEAD
-              if git symbolic-ref HEAD >/dev/null 2>&1; then
-                git push origin HEAD
-              else
-                echo "⚠️ In detached HEAD state, skipping push to main"
-              fi
+              git push origin HEAD
               echo "✅ Committed version changes"
             fi
 
+            # Create tag using the same simple approach as release.yml
             git tag -a "v$NEW_VERSION" -m "🎯 Manual release v$NEW_VERSION - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
           fi
 
+          # Push tag using the same method as release.yml
           git push origin "v$NEW_VERSION"
           echo "✅ Tagged v$NEW_VERSION"
 
@@ -511,3 +509,4 @@ jobs:
             echo "• Update documentation if needed"
             echo "• Consider announcement in relevant channels"
           fi
+
