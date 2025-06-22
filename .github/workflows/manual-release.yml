@@ -224,7 +224,7 @@ jobs:
           echo ""
 
       - name: Update versions everywhere
-        if: github.event.inputs.dry_run != 'true'
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.commit_hash == ''
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
 
@@ -266,6 +266,13 @@ jobs:
             sed -i "s/version = ['\''\"]*[^'\''\"]*['\''\"]/version = '$NEW_VERSION'/g" webWorker.js
             echo "✅ Updated webWorker.js"
           fi
+
+      - name: Skip version updates for specific commits
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.commit_hash != ''
+        run: |
+          echo "⏭️ Skipping version updates for specific commit release"
+          echo "   Reason: Releasing exact historical state of commit ${{ github.event.inputs.commit_hash }}"
+          echo "   Version files will remain as they were at that commit"
 
       - name: Generate release notes
         run: |
@@ -432,6 +439,10 @@ jobs:
             echo "🔄 Switching to main branch to avoid detached HEAD state"
             git checkout main
             git pull origin main
+
+            # Ensure we have a clean working directory (no version update changes)
+            git reset --hard HEAD
+            git clean -fd
 
             # Create tag pointing to the specific commit, but from main branch
             echo "🏷️ Creating tag for specific commit $TARGET_COMMIT"
