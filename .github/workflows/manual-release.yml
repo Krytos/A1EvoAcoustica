@@ -425,8 +425,9 @@ jobs:
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
           TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
+          COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
 
-          if [ -n "${{ github.event.inputs.commit_hash }}" ]; then
+          if [ -n "$COMMIT_HASH" ]; then
             # For specific commits, just create tag without committing changes
             git tag -a "v$NEW_VERSION" "$TARGET_COMMIT" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
           else
