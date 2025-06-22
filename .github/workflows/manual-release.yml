@@ -424,13 +424,18 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
+          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
           COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
 
           if [ -n "$COMMIT_HASH" ]; then
-            # For specific commits, create a simpler tag without complex referencing
+            # For specific commits, switch to main branch first to avoid detached HEAD issues
+            echo "🔄 Switching to main branch to avoid detached HEAD state"
+            git checkout main
+            git pull origin main
+
+            # Create tag pointing to the specific commit, but from main branch
             echo "🏷️ Creating tag for specific commit $TARGET_COMMIT"
-            git tag -a "v$NEW_VERSION" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
+            git tag -a "v$NEW_VERSION" "$TARGET_COMMIT" -m "🎯 Manual release v$NEW_VERSION from commit $TARGET_COMMIT - Type: ${{ github.event.inputs.release_type }} - Platforms: ${{ github.event.inputs.build_platforms }} - Triggered by: ${{ github.actor }}"
           else
             # For latest commit, follow the same pattern as release.yml
             git add package.json package-lock.json
@@ -471,7 +476,7 @@ jobs:
       - name: Success summary
         run: |
           NEW_VERSION="${{ needs.validate-inputs.outputs.normalized_version }}"
-          TARGET_COMMIT="${{ needs.validate-inputs.outputs.target_commit }}"
+          TARGET_COMMIT="${{ needs.validate_inputs.outputs.target_commit }}"
 
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             echo "🧪 Dry run completed successfully!"
